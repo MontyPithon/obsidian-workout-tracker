@@ -9,16 +9,21 @@ export const DEFAULT_SETTINGS: WorkoutTrackerSettings = {
 		{name: 'Weight', type: 'string'},
 		{name: 'Reps', type: 'number'}
 	],
-	muscleGroups: [
-		'Chest',
-		'Back',
-		'Legs',
-	],
-	exercises: [
-		{
-			name: 'Bench press',
-			muscleGroup: 'Chest'
-		}
+        muscleGroups: [
+                'Chest',
+                'Back',
+                'Legs',
+        ],
+        workoutTypes: [
+                'Push',
+                'Pull',
+                'Legs'
+        ],
+        exercises: [
+                {
+                        name: 'Bench press',
+                        muscleGroup: 'Chest'
+                }
 	]
 };
 
@@ -168,17 +173,81 @@ export default class BaseSettingsTab extends PluginSettingTab {
 
 		})
 
-		new Setting(this.containerEl).addButton((cb) => {
-			cb.setButtonText("Add new muscle group")
-				.setCta()
-				.onClick(async () => {
-					this.plugin.settings.muscleGroups.push("")
-					await this.plugin.saveSettings()
-					this.display()
-				});
-		});
+                new Setting(this.containerEl).addButton((cb) => {
+                        cb.setButtonText("Add new muscle group")
+                                .setCta()
+                                .onClick(async () => {
+                                        this.plugin.settings.muscleGroups.push("")
+                                        await this.plugin.saveSettings()
+                                        this.display()
+                                });
+                });
 
-		new Setting(containerEl).setName('Exercises').setHeading()
+                new Setting(containerEl).setName('Workout types').setHeading()
+
+                this.plugin.settings.workoutTypes.forEach((_, index) => {
+                        new Setting(containerEl)
+                                .addText(text => {
+                                        text.setValue(this.plugin.settings.workoutTypes[index]);
+                                        text.onChange(async (value) => {
+                                                this.plugin.settings.workoutTypes[index] = value
+                                                await this.plugin.saveSettings()
+                                        })
+                                })
+                                .addExtraButton((cb) => {
+                                        cb.setIcon("up-chevron-glyph")
+                                                .setTooltip("Move up")
+                                                .onClick(async () => {
+                                                        arraymove(
+                                                                this.plugin.settings.workoutTypes,
+                                                                index,
+                                                                index - 1
+                                                        );
+                                                        this.plugin.settings.workoutTypes;
+                                                        await this.plugin.saveSettings()
+                                                        this.display();
+                                                });
+                                })
+                                .addExtraButton((cb) => {
+                                        cb.setIcon("down-chevron-glyph")
+                                                .setTooltip("Move down")
+                                                .onClick(async () => {
+                                                        arraymove(
+                                                                this.plugin.settings.workoutTypes,
+                                                                index,
+                                                                index + 1
+                                                        );
+                                                        this.plugin.settings.workoutTypes;
+                                                        await this.plugin.saveSettings()
+                                                        this.display();
+                                                });
+                                })
+                                .addExtraButton((cb) => {
+                                        cb.setIcon("cross")
+                                                .setTooltip("Delete")
+                                                .onClick(async () => {
+                                                        this.plugin.settings.workoutTypes.splice(
+                                                                index,
+                                                                1
+                                                        );
+                                                        await this.plugin.saveSettings()
+                                                        this.display();
+                                                });
+                                });
+
+                })
+
+                new Setting(this.containerEl).addButton((cb) => {
+                        cb.setButtonText("Add new workout type")
+                                .setCta()
+                                .onClick(async () => {
+                                        this.plugin.settings.workoutTypes.push("")
+                                        await this.plugin.saveSettings()
+                                        this.display()
+                                });
+                });
+
+                new Setting(containerEl).setName('Exercises').setHeading()
 
 		this.plugin.settings.exercises.forEach((_, index) => {
 			new Setting(containerEl)

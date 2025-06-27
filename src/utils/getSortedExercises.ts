@@ -18,15 +18,17 @@ function formatDateToYMD(input: string | Date): string {
 export function getSortedExercises(
 	app: App,
 	settings: WorkoutTrackerSettings,
-	date: string | Date | null = null,
-	removeMuscleKeys = false
+        date: string | Date | null = null,
+        removeMuscleKeys = false,
+        workoutType: string | null = null
 ) {
-	const folderPath = date
-		? normalizePath(`${settings.workoutsFolder}/${formatDateToYMD(date)}`)
-		: normalizePath(settings.workoutsFolder);
-	const allExercise = app.vault
-		.getFiles()
-		.filter((f) => f.path.includes(folderPath));
+        const basePath = date
+                ? normalizePath(`${settings.workoutsFolder}/${formatDateToYMD(date)}`)
+                : normalizePath(settings.workoutsFolder);
+        const folderPath = workoutType ? `${basePath}-${workoutType}` : basePath;
+        const allExercise = app.vault
+                .getFiles()
+                .filter((f) => f.path.startsWith(folderPath));
 
 	let sortedExercises: sortedExerciseType<typeof removeMuscleKeys> = {};
 

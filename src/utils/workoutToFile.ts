@@ -3,16 +3,16 @@ import {getSortedExercises} from "@/utils/getSortedExercises";
 import {WorkoutTrackerSettings} from "@/types/Settings";
 
 export async function workoutToFile(app: App, settings: WorkoutTrackerSettings, exercises: {
-	[key: string]: string
-}[], workoutDir: string, date: string | Date) {
-	const dirPath = `${workoutDir}/${date}`;
+        [key: string]: string
+}[], workoutDir: string, date: string | Date, workoutType: string) {
+        const dirPath = `${workoutDir}/${date}-${workoutType}`;
 	const dir = app.vault.getAbstractFileByPath(dirPath);
 
 	if (!dir) {
 		await app.vault.createFolder(dirPath);
 	}
 
-	const sortedExercises = getSortedExercises(app, settings, date, true);
+        const sortedExercises = getSortedExercises(app, settings, date, true, workoutType);
 
 	for (const index in exercises) {
 		const exercise = exercises[index];
@@ -21,7 +21,7 @@ export async function workoutToFile(app: App, settings: WorkoutTrackerSettings, 
 
 		let totalIndex =  existingExercisesInDay && Array.isArray(existingExercisesInDay) ? numericIndex + existingExercisesInDay.length + 1 : numericIndex + 1
 
-		const fileName = normalizePath(`${workoutDir}/${date}/${exercise.selectedExercise}-${totalIndex}.md`);
+                const fileName = normalizePath(`${workoutDir}/${date}-${workoutType}/${exercise.selectedExercise}-${totalIndex}.md`);
 
 		const file = app.vault.getAbstractFileByPath(fileName);
 
