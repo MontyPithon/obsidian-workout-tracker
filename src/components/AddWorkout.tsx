@@ -8,11 +8,12 @@ import {workoutToFile} from "@/utils/workoutToFile";
 import {addWorkout} from "@/addWorkout/addWorkout";
 
 export const AddWorkout = ({settings, context}: { settings?: WorkoutTrackerSettings, context: addWorkout }) => {
-	const [isExerciseAdding, setExerciseAdding] = useState(false);
-	const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-	const [exercises, setExercises] = useState<{
-		[key: string]: string
-	}[]>([]);
+        const [isExerciseAdding, setExerciseAdding] = useState(false);
+        const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+        const [workoutType, setWorkoutType] = useState(settings?.workoutTypes[0] || '')
+        const [exercises, setExercises] = useState<{
+                [key: string]: string
+        }[]>([]);
 	const [formValues, setFormValues] = useState<{ [key: string]: string }>({});
 	const app = useApp();
 
@@ -27,23 +28,33 @@ export const AddWorkout = ({settings, context}: { settings?: WorkoutTrackerSetti
 		}));
 	};
 
-	async function saveWorkout() {
-		if (!app || !settings?.workoutsFolder) return
-		await workoutToFile(app, settings ,exercises, settings.workoutsFolder, date);
-		context.close()
-	}
+        async function saveWorkout() {
+                if (!app || !settings?.workoutsFolder) return
+                await workoutToFile(app, settings ,exercises, settings.workoutsFolder, date, workoutType);
+                context.close()
+        }
 
 	return (
 		<div className="flex-col gap-1">
 			<h2>Adding workout</h2>
-			<input
-				type="date"
-				value={date}
-				onChange={(e) => {
-					setDate(e.target.value)
-				}}
-			/>
-			<button onClick={() => setExerciseAdding(true)}>Add exercise</button>
+                        <input
+                                type="date"
+                                value={date}
+                                onChange={(e) => {
+                                        setDate(e.target.value)
+                                }}
+                        />
+                        {settings?.workoutTypes && (
+                                <select
+                                        value={workoutType}
+                                        onChange={(e) => setWorkoutType(e.target.value)}
+                                >
+                                        {settings.workoutTypes.map((type) => (
+                                                <option key={type} value={type}>{type}</option>
+                                        ))}
+                                </select>
+                        )}
+                        <button onClick={() => setExerciseAdding(true)}>Add exercise</button>
 
 			{isExerciseAdding && (
 				<div className={'add-exercise'}>
