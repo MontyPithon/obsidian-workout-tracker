@@ -1,11 +1,12 @@
 import {useApp} from "@/hooks/useApp";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {WorkoutTrackerSettings} from "@/types/Settings";
 import Select from 'react-select';
 import {CircleX, ChevronUpCircle, ChevronDownCircle} from "lucide-react";
 import {getArrayMoved} from "@/utils/arrayMove";
 import {workoutToFile} from "@/utils/workoutToFile";
 import {addWorkout} from "@/addWorkout/addWorkout";
+import {getLastParamValue} from "@/utils/getLastParamValue";
 
 export const AddWorkout = ({settings, context}: { settings?: WorkoutTrackerSettings, context: addWorkout }) => {
         const [isExerciseAdding, setExerciseAdding] = useState(false);
@@ -14,8 +15,23 @@ export const AddWorkout = ({settings, context}: { settings?: WorkoutTrackerSetti
         const [exercises, setExercises] = useState<{
                 [key: string]: string
         }[]>([]);
-	const [formValues, setFormValues] = useState<{ [key: string]: string }>({});
-	const app = useApp();
+        const [formValues, setFormValues] = useState<{ [key: string]: string }>({});
+        const [paramSuggestions, setParamSuggestions] = useState<{[key: string]: string | null}>({});
+        const app = useApp();
+
+        useEffect(() => {
+                if (!app || !settings || !formValues.selectedExercise) {
+                        setParamSuggestions({});
+                        return;
+                }
+
+                const result: {[key: string]: string | null} = {};
+                settings.additionalExerciseParams.forEach(param => {
+                        const value = getLastParamValue(app, settings, formValues.selectedExercise, param.name);
+                        if (value) result[param.name] = value;
+                });
+                setParamSuggestions(result);
+        }, [formValues.selectedExercise, app, settings]);
 
 	function addExercise() {
 		setExercises(prevExercises => [...prevExercises, formValues]);
@@ -63,16 +79,17 @@ export const AddWorkout = ({settings, context}: { settings?: WorkoutTrackerSetti
 						options={settings?.exercises.map(exercise => ({value: exercise.name, label: exercise.name}))}
 						onChange={(selectedOption) => handleInputChange('selectedExercise', selectedOption?.value || '')}
 					/>
-					{settings?.additionalExerciseParams.map((param, index) => (
-						<div key={index} className={"flex gap-1 align-center justify-between"}>
-							<p>{param.name}</p>
-							<input
-								type="text"
-								value={formValues[param.name] || ''}
-								onChange={(e) => handleInputChange(param.name, e.target.value)}
-							/>
-						</div>
-					))}
+                                        {settings?.additionalExerciseParams.map((param, index) => (
+                                                <div key={index} className={"flex gap-1 align-center justify-between"}>
+                                                        <p>{param.name}</p>
+                                                        <input
+                                                                type="text"
+                                                                placeholder={paramSuggestions[param.name] ? `Last: ${paramSuggestions[param.name]}` : ''}
+                                                                value={formValues[param.name] || ''}
+                                                                onChange={(e) => handleInputChange(param.name, e.target.value)}
+                                                        />
+                                                </div>
+                                        ))}
 					<div className={"flex gap-1 mt-1"}>
 						<button onClick={() => setExerciseAdding(false)}>Cancel</button>
 						<button onClick={() => {
